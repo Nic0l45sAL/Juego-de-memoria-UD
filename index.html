@@ -1,0 +1,156 @@
+index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Juego de Memoria</title>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #0a1f44; /* Azul oscuro */
+    color: white; /* Texto blanco para mayor contraste */
+  }
+  
+  .tablero {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .carta {
+    width: 100px;
+    height: 100px;
+    background-color: #1e90ff; /* Azul claro */
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-size: 40px;
+    text-align: center;
+    line-height: 100px;
+    color: white;
+    font-weight: bold;
+  }
+
+  .carta.girada {
+    background-color: #00bfff; /* Azul más brillante cuando se gira */
+  }
+
+  .carta.acertada {
+    background-color: #32cd32; /* Verde para indicar acierto */
+    cursor: default;
+  }
+
+  button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    background-color: #ff4500; /* Botón naranja */
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background-color: #ff6347; /* Color más claro al pasar el mouse */
+  }
+</style>
+</head>
+<body>
+
+<h1>Juego de Memoria</h1>
+
+<div class="tablero" id="tablero"></div>
+<button onclick="reiniciarJuego()">Reiniciar Juego</button>
+
+<script>
+  let cartas = ['A', 'B', 'C', 'D', 'A', 'B', 'C', 'D'];
+
+  function barajarCartas(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  let cartasGiradas = [];
+  let paresAcertados = 0;
+  const tablero = document.getElementById('tablero');
+
+  function crearTablero() {
+    cartas = barajarCartas(cartas);
+    cartas.forEach(valor => {
+      const carta = document.createElement('div');
+      carta.classList.add('carta');
+      carta.innerText = '?';
+      carta.dataset.valor = valor;
+      carta.addEventListener('click', girarCarta);
+      tablero.appendChild(carta);
+    });
+  }
+
+  function deshabilitarClics() {
+    document.querySelectorAll('.carta').forEach(carta => {
+      carta.style.pointerEvents = 'none';
+    });
+  }
+
+  function habilitarClics() {
+    document.querySelectorAll('.carta:not(.acertada)').forEach(carta => {
+      carta.style.pointerEvents = 'auto';
+    });
+  }
+
+  function girarCarta(evento) {
+    const carta = evento.target;
+
+    if (carta.classList.contains('girada') || carta.classList.contains('acertada')) {
+      return;
+    }
+
+    carta.innerText = carta.dataset.valor;
+    carta.classList.add('girada');
+    cartasGiradas.push(carta);
+
+    if (cartasGiradas.length === 2) {
+      const [carta1, carta2] = cartasGiradas;
+
+      deshabilitarClics();
+      setTimeout(() => {
+        if (carta1.dataset.valor === carta2.dataset.valor) {
+          carta1.classList.add('acertada');
+          carta2.classList.add('acertada');
+          paresAcertados++;
+
+          if (paresAcertados === cartas.length / 2) {
+            setTimeout(() => alert('¡Felicidades, has ganado!'), 300);
+          }
+        } else {
+          carta1.innerText = '?';
+          carta2.innerText = '?';
+          carta1.classList.remove('girada');
+          carta2.classList.remove('girada');
+        }
+        
+        cartasGiradas = [];
+        habilitarClics();
+      }, 1000);
+    }
+  }
+
+  function reiniciarJuego() {
+    tablero.innerHTML = '';
+    paresAcertados = 0;
+    cartasGiradas = [];
+    crearTablero();
+  }
+
+  crearTablero();
+</script>
+
+</body>
+</html>
